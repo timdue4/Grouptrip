@@ -15,6 +15,7 @@ export interface Trip {
   travelers: string[];
   chosen_interests: string[];
   chosen_transport: string | null;
+  chosen_budget_pp: number | null;
 }
 
 export interface Member {

@@ -42,3 +42,25 @@ export function topChoices(counts: Map<string, number>, limit: number): string[]
     .slice(0, limit)
     .map(([id]) => id);
 }
+export const BUDGET_MIN = 100;
+export const BUDGET_MAX = 3000;
+export const BUDGET_STEP = 50;
+export const BUDGET_DEFAULT = 1000;
+
+/** Median einer Zahlenliste; null bei leerer Liste. */
+export function median(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/** Rundet auf das nächste Vielfache der Schrittweite und begrenzt auf Min/Max. */
+export function roundBudget(value: number): number {
+  const stepped = Math.round(value / BUDGET_STEP) * BUDGET_STEP;
+  return Math.min(BUDGET_MAX, Math.max(BUDGET_MIN, stepped));
+}
+
+export function formatEuro(value: number): string {
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+}

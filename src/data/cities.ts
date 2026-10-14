@@ -28,6 +28,7 @@ export const AIRPORTS: Record<string, string> = {
   SCN: 'Saarbrücken',
   ERF: 'Erfurt-Weimar',
   PAD: 'Paderborn/Lippstadt',
+  NRN: 'Weeze (Niederrhein)',
 };
 
 export const CITIES: City[] = [
@@ -37,7 +38,7 @@ export const CITIES: City[] = [
   { id: 'koeln', name: 'Köln', state: 'NW', lat: 50.938, lng: 6.96, airports: ['CGN', 'DUS'] },
   { id: 'frankfurt', name: 'Frankfurt am Main', state: 'HE', lat: 50.11, lng: 8.682, airports: ['FRA'] },
   { id: 'stuttgart', name: 'Stuttgart', state: 'BW', lat: 48.775, lng: 9.182, airports: ['STR'] },
-  { id: 'duesseldorf', name: 'Düsseldorf', state: 'NW', lat: 51.228, lng: 6.774, airports: ['DUS', 'CGN'] },
+  { id: 'duesseldorf', name: 'Düsseldorf', state: 'NW', lat: 51.228, lng: 6.774, airports: ['DUS', 'NRN', 'CGN'] },
   { id: 'leipzig', name: 'Leipzig', state: 'SN', lat: 51.34, lng: 12.375, airports: ['LEJ', 'DRS'] },
   { id: 'dresden', name: 'Dresden', state: 'SN', lat: 51.05, lng: 13.738, airports: ['DRS', 'LEJ'] },
   { id: 'hannover', name: 'Hannover', state: 'NI', lat: 52.375, lng: 9.732, airports: ['HAJ'] },

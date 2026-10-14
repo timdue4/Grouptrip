@@ -76,6 +76,12 @@ function Summary({ trip, names, isCreator, busy, onReopen }: SummaryProps) {
             <dd className="inline">{trip.chosen_interests.map(interestLabel).join(', ')}</dd>
           </div>
         )}
+        {trip.chosen_budget_pp !== null && (
+          <div>
+            <dt className="inline font-medium">Budget: </dt>
+            <dd className="inline">{trip.chosen_budget_pp} € pro Person</dd>
+          </div>
+        )}
         {trip.chosen_transport && (
           <div>
             <dt className="inline font-medium">Anreise: </dt>
@@ -109,6 +115,7 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
   const [otherVotes, setOtherVotes] = useState<Map<string, Set<string>>>(new Map());
   const [myInterests, setMyInterests] = useState<string[]>([]);
   const [myTransport, setMyTransport] = useState<string | null>(null);
+  const [myBudget, setMyBudget] = useState<number | null>(null);
   const [otherPrefs, setOtherPrefs] = useState<Map<string, PreferenceRow>>(new Map());
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [busy, setBusy] = useState(false);
@@ -168,6 +175,7 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
           if (initial) {
             setMyInterests(row.interests);
             setMyTransport(row.transport);
+            setMyBudget(row.budget_pp)
           }
         } else {
           prefs.set(row.user_id, row);
@@ -319,6 +327,14 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
     return map;
   }, [travelers, myTransport, otherPrefs, userId]);
 
+  const budgetSelections = useMemo(() => {
+    const map = new Map<string, number | null>();
+    for (const id of travelers) {
+      map.set(id, id === userId ? myBudget : (otherPrefs.get(id)?.budget_pp ?? null));
+    }
+    return map;
+  }, [travelers, myBudget, otherPrefs, userId]);
+
   if (status === 'loading') return <p>Lade Reise …</p>;
   if (status === 'notMember') return <JoinTrip code={code} />;
   if (status === 'error' || !trip) {
@@ -375,15 +391,17 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
     }
   };
 
-  const queuePrefs = (interests: string[], transport: string | null) => {
+const queuePrefs = (interests: string[], transport: string | null, budget: number | null) => {
     setMyInterests(interests);
     setMyTransport(transport);
+    setMyBudget(budget);
     window.clearTimeout(prefsTimer.current);
     prefsTimer.current = window.setTimeout(async () => {
       const { error } = await supabase.rpc('set_preferences', {
         p_trip: trip.id,
         p_interests: interests,
         p_transport: transport,
+        p_budget: budget,
       });
       if (error) {
         console.error(error);
@@ -496,15 +514,24 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
         </>
       )}
 
-      {trip.stage === 'interests' && (
+{trip.stage === 'interests' && (
         <InterestsStep
           selections={interestSelections}
+          budgets={budgetSelections}
           mine={myInterests}
+          myBudget={myBudget}
           isTraveler={isTraveler}
           isCreator={isCreator}
           busy={busy}
-          onChangeMine={(next) => queuePrefs(next, myTransport)}
-          onLock={(picked) => void runRpc('lock_interests', { p_trip: trip.id, p_interests: picked }, 'Der Reisetyp konnte nicht festgelegt werden.')}
+          onChangeMine={(next) => queuePrefs(next, myTransport, myBudget)}
+          onChangeBudget={(next) => queuePrefs(myInterests, myTransport, next)}
+          onLock={(picked, budget) =>
+            void runRpc(
+              'lock_interests',
+              { p_trip: trip.id, p_interests: picked, p_budget: budget },
+              'Reisetyp und Budget konnten nicht festgelegt werden.',
+            )
+          }
         />
       )}
 
@@ -516,7 +543,7 @@ export function TripPage({ code, userId }: { code: string; userId: string }) {
           isTraveler={isTraveler}
           isCreator={isCreator}
           busy={busy}
-          onChangeMine={(next) => queuePrefs(myInterests, next)}
+          onChangeMine={(next) => queuePrefs(myInterests, next, myBudget)}
           onLock={(t) => void runRpc('lock_transport', { p_trip: trip.id, p_transport: t }, 'Das Verkehrsmittel konnte nicht festgelegt werden.')}
         />
       )}
