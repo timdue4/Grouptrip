@@ -42,4 +42,5 @@ export interface PreferenceRow {
   user_id: string;
   interests: string[];
   transport: string | null;
+  budget_pp: number | null
 }
